@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, AlertTriangle } from "lucide-react";
 import axios from "axios";
+import Link from "next/link";
 
 interface Event {
   id: string;
@@ -20,7 +21,6 @@ async function fetchEvents() {
         headers: { "Cache-Control": "no-store" },
       }
     );
-    console.log("response data:", response.data);
     return response.data.events;
   } catch (error) {
     console.error("Error fetching events:", error);
@@ -110,13 +110,15 @@ export default async function EventsPage() {
                             </p>
                           </td>
                           <td className="p-4">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs bg-transparent"
-                            >
-                              View Details
-                            </Button>
+                            <Link href={`/eventos/${event.id}`}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs bg-transparent"
+                              >
+                                View Details
+                              </Button>
+                            </Link>
                           </td>
                         </tr>
                       ))}
