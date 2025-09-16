@@ -1,48 +1,132 @@
-"use client";
-
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { getRandomEvents } from "@/utils/auxfunctions";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Shield, AlertTriangle } from "lucide-react";
+import axios from "axios";
 
-export default function EventosPage() {
-  const [loading, setLoading] = useState(false);
-  const [events, setEvents] = useState<string[]>([]);
+interface Event {
+  id: string;
+  message: string;
+  summary?: string;
+  severity: string;
+  suggestion?: string;
+  watchlistName: string;
+}
 
-  const simulateEvent = async () => {
-    setLoading(true);
-    try {
-      await new Promise((res) => setTimeout(res, 1000)); // delay simulado
-      const newEvents = getRandomEvents();
-      setEvents([...events, ...newEvents]);
-    } catch (error) {
-      console.error("Error simulando evento:", error);
-    } finally {
-      setLoading(false);
-    }
+async function fetchEvents() {
+  try {
+    const response = await axios.get(
+      process.env.NEXT_PUBLIC_API_URL + "/api/events",
+      {
+        headers: { "Cache-Control": "no-store" },
+      }
+    );
+    console.log("response data:", response.data);
+    return response.data.events;
+  } catch (error) {
+    console.error("Error fetching events:", error);
+    throw new Error("Failed to fetch events");
+  }
+}
+
+export default async function EventsPage() {
+  const events = await fetchEvents();
+
+  const truncateText = (text: string, maxLength: number) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + "...";
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Eventos</h1>
-      
-      <Card className="p-4">
-        <h2 className="text-lg font-semibold mb-2">Simulación de eventos</h2>
-        <Button onClick={simulateEvent} disabled={loading}>
-          {loading ? "Simulando..." : "Simular evento"}
-        </Button>
-        <CardContent className="mt-4 space-y-2">
-          {events.length === 0 ? (
-            <p className="text-gray-500">No hay eventos registrados</p>
-          ) : (
-            events.map((e, i) => (
-              <div key={i} className="p-2 bg-red-50 border border-red-200 rounded-md text-sm">
-                {e}
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              Recent Security Events
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {events.length === 0 ? (
+              <div className="text-center py-12">
+                <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  No events found
+                </h3>
+                <p className="text-muted-foreground">
+                  Your security monitoring is active, but no events have been
+                  detected.
+                </p>
               </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-muted/50 border-b">
+                    <tr>
+                      <th className="text-left p-4 font-semibold text-sm text-foreground">
+                        Message
+                      </th>
+                      <th className="text-left p-4 font-semibold text-sm text-foreground">
+                        Summary
+                      </th>
+                      <th className="text-left p-4 font-semibold text-sm text-foreground">
+                        Severity
+                      </th>
+                      <th className="text-left p-4 font-semibold text-sm text-foreground">
+                        Suggestion
+                      </th>
+                      <th className="text-left p-4 font-semibold text-sm text-foreground">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {events.length > 0 &&
+                      events.map((event: Event, index: number) => (
+                        <tr
+                          key={event.id}
+                          className={`border-b hover:bg-muted/30 transition-colors ${
+                            index % 2 === 0 ? "bg-background" : "bg-muted/10"
+                          }`}
+                        >
+                          <td className="p-4 max-w-xs">
+                            <p className="text-sm leading-relaxed">
+                              {truncateText(event.message, 80)}
+                            </p>
+                          </td>
+                          <td className="p-4 max-w-xs">
+                            <p className="text-sm text-muted-foreground">
+                              {event.summary
+                                ? truncateText(event.summary, 60)
+                                : "-"}
+                            </p>
+                          </td>
+                          <td className="p-4">{event.severity}</td>
+                          <td className="p-4 max-w-xs">
+                            <p className="text-sm text-muted-foreground">
+                              {event.suggestion
+                                ? truncateText(event.suggestion, 50)
+                                : "-"}
+                            </p>
+                          </td>
+                          <td className="p-4">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-xs bg-transparent"
+                            >
+                              View Details
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
