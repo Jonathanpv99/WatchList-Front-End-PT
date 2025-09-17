@@ -1,5 +1,5 @@
 // Objeto con eventos sospechosos
-const suspiciousEvents = {
+const suspiciousEvents: Record<number, string> = {
   1: "Nuevo dominio sospechoso detectado",
   2: "Intento de acceso no autorizado",
   3: "Tráfico anómalo detectado",
@@ -15,19 +15,15 @@ const suspiciousEvents = {
 export function getRandomEvents(): string[] {
   const numberOfEvents = Math.floor(Math.random() * 5) + 1;
 
-  // Obtener las claves del objeto de eventos
-  const eventKeys = Object.keys(suspiciousEvents);
+  // Obtener las claves como números
+  const eventKeys = Object.keys(suspiciousEvents).map(Number);
 
-  // Arreglo para almacenar los eventos seleccionados
   const selectedEvents: string[] = [];
 
-  // Seleccionar eventos aleatorios
   for (let i = 0; i < numberOfEvents; i++) {
-    // Seleccionar una clave aleatoria
     const randomIndex = Math.floor(Math.random() * eventKeys.length);
     const randomKey = eventKeys[randomIndex];
 
-    // Agregar el evento correspondiente al arreglo
     selectedEvents.push(suspiciousEvents[randomKey]);
 
     eventKeys.splice(randomIndex, 1);
